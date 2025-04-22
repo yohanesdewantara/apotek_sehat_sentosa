@@ -7,12 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class DetailPembelian extends Model
 {
-    protected $table = 'detail_pembelian';
     use HasFactory;
-    public function obat()
-    {
-        return $this->belongsTo(DetailObat::class, 'id_detailobat');
-    }
+
+    protected $table = 'detail_pembelian';
+    protected $primaryKey = 'id_detailbeli';
+    public $timestamps = false;
+
+    protected $fillable = [
+        'id_pembelian',
+        'id_detailobat',
+        'tgl_pembelian',
+        'jumlah_beli',
+        'harga_beli',
+        'tgl_kadaluarsa',
+    ];
 
     public function pembelian()
     {
@@ -20,9 +28,7 @@ class DetailPembelian extends Model
     }
 
     public function detailObat()
-{
-    // return $this->belongsTo(\App\Models\DetailObat::class, 'id_detailobat');
-    return $this->belongsTo(DetailObat::class, 'id_detailobat');
-}
-
+    {
+        return $this->belongsTo(DetailObat::class, 'id_detailobat', 'id_detailobat');
+    }
 }

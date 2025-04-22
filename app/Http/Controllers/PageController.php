@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Admin; // Tambahkan di paling atas
 
 class PageController extends Controller
 {
@@ -17,9 +18,10 @@ class PageController extends Controller
     }
 
     public function datauseradmin()
-    {
-        return view("datauseradmin");
-    }
+{
+    $admin = Admin::all(); // Ambil semua data dari tabel admin
+    return view("datauseradmin", compact('admin')); // Kirim ke view
+}
 
     public function pembelian()
     {

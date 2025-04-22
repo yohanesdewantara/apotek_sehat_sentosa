@@ -8,12 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 class Obat extends Model
 {
     use HasFactory;
+
     protected $table = 'obat';
     protected $primaryKey = 'id_obat';
     public $timestamps = false;
 
-    // public function rak()
-    // {
-    //     return $this->belongsTo(RakObat::class, 'id_rak');
-    // }
+    // protected $fillable = ['id_rak', 'nama_obat', 'stok_total', 'keterangan_obat', 'jenis_obat', 'harga_beli', 'harga_jual'];
+
+    protected $fillable = [
+        'id_rak', 'nama_obat', 'stok_total', 'keterangan_obat', 'jenis_obat', 'harga_beli', 'harga_jual'
+    ];
+
+
+    // Relasi ke Detail Obat
+    // app/Models/Obat.php
+public function detailObat()
+{
+    return $this->hasMany(DetailObat::class, 'id_obat', 'id_obat');
+}
+
 }
