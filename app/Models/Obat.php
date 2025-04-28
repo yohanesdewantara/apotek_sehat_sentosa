@@ -13,15 +13,14 @@ class Obat extends Model
     protected $primaryKey = 'id_obat';
     public $timestamps = false;
 
-    // protected $fillable = ['id_rak', 'nama_obat', 'stok_total', 'keterangan_obat', 'jenis_obat', 'harga_beli', 'harga_jual'];
+
 
     protected $fillable = [
         'id_rak', 'nama_obat', 'stok_total', 'keterangan_obat', 'jenis_obat', 'harga_beli', 'harga_jual'
     ];
 
 
-    // Relasi ke Detail Obat
-    // app/Models/Obat.php
+   
 public function detailObat()
 {
     return $this->hasMany(DetailObat::class, 'id_obat', 'id_obat');

@@ -19,8 +19,8 @@ class PageController extends Controller
 
     public function datauseradmin()
 {
-    $admin = Admin::all(); // Ambil semua data dari tabel admin
-    return view("datauseradmin", compact('admin')); // Kirim ke view
+    $admin = Admin::all();
+    return view("datauseradmin", compact('admin'));
 }
 
     public function pembelian()
@@ -50,12 +50,9 @@ class PageController extends Controller
 
     public function logout()
     {
-        // Pindahkan logout ke controller AuthController
+
         return redirect('/');
     }
 
-//     public function createpembelian()
-// {
-//     return view('createpembelian');
-// }
+    
 }

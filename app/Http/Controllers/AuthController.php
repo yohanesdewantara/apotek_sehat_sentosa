@@ -11,7 +11,7 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        return view('login'); // Tampilkan halaman login
+        return view('login');
     }
 
     public function login(Request $request)
@@ -29,7 +29,6 @@ class AuthController extends Controller
 
     public function logout()
     {
-        // Menghapus semua session ketika logout
         Session::flush();
         return redirect('/login');
     }

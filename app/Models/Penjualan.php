@@ -19,13 +19,13 @@ class Penjualan extends Model
         'total'
     ];
 
-    // Relasi ke Admin
+
     public function admin()
     {
         return $this->belongsTo(Admin::class, 'id_admin', 'id_admin');
     }
 
-    // Relasi ke Detail Penjualan
+    
     public function detailPenjualan()
     {
         return $this->hasMany(DetailPenjualan::class, 'id_penjualan', 'id_penjualan');

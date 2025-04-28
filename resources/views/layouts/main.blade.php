@@ -5,17 +5,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Favicon -->
+
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2921/2921822.png" type="image/png">
 
-    <!-- Bootstrap & Icons -->
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.7/css/dataTables.dataTables.css">
 
     <title>Apotek Sehat Sentosa - @yield('title')</title>
 
-    <!-- Custom Styles -->
+
     <style>
         body {
             background-color: #f4f9f5;
@@ -159,7 +159,7 @@
             box-shadow: none !important;
         }
 
-        /* Smooth hover on icons */
+
         .sidebar .btn i {
             transition: transform 0.2s ease;
         }
@@ -168,7 +168,7 @@
             transform: scale(1.15);
         }
 
-        /* Responsive improvement */
+
         @media (max-width: 768px) {
             .sidebar {
                 height: auto;
@@ -183,7 +183,7 @@
 </head>
 
 <body>
-    <!-- Header -->
+
     <nav class="navbar navbar-expand-lg">
         <a class="navbar-brand" href="#">
             <i class="bi bi-capsule-fill mr-2"></i> Apotek Sehat Sentosa 💊
@@ -205,7 +205,7 @@
 
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
+
             <div class="col-md-2 sidebar">
                 <a href="{{ url('/home') }}"
                     class="btn btn-success btn-block {{ request()->is('home') ? 'active' : '' }}">
@@ -241,7 +241,7 @@
                 </a>
             </div>
 
-            <!-- Main Content -->
+
             <div class="col-md-10 py-4">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
@@ -262,12 +262,12 @@
         </div>
     </div>
 
-    <!-- Footer -->
+
     <footer>
         © 2025 Apotek Sehat Sentosa
     </footer>
 
-    <!-- Scripts -->
+   
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"></script>

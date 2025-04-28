@@ -5,84 +5,75 @@
 <form action="{{ route('pembelian.store') }}" method="POST">
     @csrf
 
-    {{-- Nama Admin --}}
-    <div class="form-group">
-        <label for="nama_admin">Nama Admin</label>
-        <input type="text" name="nama_admin" id="nama_admin" class="form-control" required>
-    </div>
-
-    {{-- Tanggal Pembelian --}}
-    <div class="form-group">
+    <div class="form-group mb-3">
         <label for="tgl_pembelian">Tanggal Pembelian</label>
         <input type="date" name="tgl_pembelian" id="tgl_pembelian" class="form-control" required>
     </div>
 
-     {{-- Nama Obat --}}
-     <div class="form-group">
-        <label for="nama_obat">Nama Obat</label>
-        <input type="text" name="nama_obat" id="nama_obat" class="form-control" required>
+    <div class="form-group mb-3">
+        <label for="id_admin">Nama Admin</label>
+        <select name="id_admin" id="id_admin" class="form-control" required>
+            @foreach($admins as $admin)
+                <option value="{{ $admin->id_admin }}">{{ $admin->nama_admin }}</option>
+            @endforeach
+        </select>
     </div>
 
-    {{-- Jenis Obat --}}
-    <div class="form-group">
-        <label for="tgl_pembelian">Jenis Obat</label>
-        <input type="text" name="jenis_obat" id="jenis_obat" class="form-control" required>
+    <h5 class="mt-4">Detail Obat Dibeli</h5>
+
+    <div id="detail-obat-wrapper">
+        <div class="row mb-2 detail-obat-item">
+            <div class="col-md-5">
+                <label>Obat</label>
+                <select name="obat_id[]" class="form-control" required>
+                    @foreach($obats as $obat)
+                        <option value="{{ $obat->id_obat }}">{{ $obat->nama_obat }} (Exp: {{ $obat->tgl_kadaluarsa }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label>Jumlah</label>
+                <input type="number" name="jumlah_beli[]" class="form-control" required>
+            </div>
+            <div class="col-md-2">
+                <label>Harga Beli</label>
+                <input type="number" name="harga_beli[]" class="form-control" required>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn btn-success add-detail">+</button>
+            </div>
+        </div>
     </div>
 
-    {{-- Keterangan Obat --}}
-    <div class="form-group">
-        <label for="tgl_pembelian">Keterangan Obat</label>
-        <input type="text" name="keterangan_obat" id="keterangan_obat" class="form-control" required>
-    </div>
-
-    {{-- Jumlah (Qty) --}}
-    <div class="form-group">
-        <label for="jumlah_beli">Jumlah Beli (Qty)</label>
-        <input type="number" name="jumlah_beli" id="jumlah_beli" class="form-control" required>
-    </div>
-
-    {{-- Harga Beli --}}
-    <div class="form-group">
-        <label for="harga_beli">Harga Beli</label>
-        <input type="number" name="harga_beli" id="harga_beli" class="form-control" required>
-    </div>
-
-    {{-- Harga Jual --}}
-    <div class="form-group">
-        <label for="harga_jual">Harga Jual</label>
-        <input type="number" name="harga_jual" id="harga_jual" class="form-control" required>
-    </div>
-
-    {{-- Tanggal Kadaluarsa --}}
-    <div class="form-group">
-        <label for="tgl_kadaluarsa">Tanggal Kadaluwarsa</label>
-        <input type="date" name="tgl_kadaluarsa" id="tgl_kadaluarsa" class="form-control" required>
-    </div>
-
-    {{-- Total --}}
-    <div class="form-group">
-        <label for="total">Total</label>
-        <input type="number" name="total" id="total" class="form-control" required readonly>
-    </div>
-
-    {{-- Tombol --}}
-    <button type="submit" class="btn btn-primary mt-3">Simpan</button>
+    <button type="submit" class="btn btn-primary mt-3">Simpan Pembelian</button>
     <a href="{{ route('pembelian.index') }}" class="btn btn-secondary mt-3">Kembali</a>
 </form>
 
-{{-- Script otomatis menghitung total harga --}}
 <script>
-    const qtyInput = document.getElementById('jumlah_beli');
-    const hargaBeliInput = document.getElementById('harga_beli');
-    const totalHargaInput = document.getElementById('total');
+    document.addEventListener('DOMContentLoaded', function () {
+        const wrapper = document.getElementById('detail-obat-wrapper');
 
-    function hitungTotal() {
-        const qty = parseInt(qtyInput.value) || 0;
-        const hargaBeli = parseInt(hargaBeliInput.value) || 0;
-        totalHargaInput.value = qty * hargaBeli;
-    }
+        wrapper.addEventListener('click', function (e) {
+            if (e.target.classList.contains('add-detail')) {
+                e.preventDefault();
+                const newItem = e.target.closest('.detail-obat-item').cloneNode(true);
 
-    qtyInput.addEventListener('input', hitungTotal);
-    hargaBeliInput.addEventListener('input', hitungTotal);
+                // Kosongkan inputan
+                newItem.querySelectorAll('input').forEach(input => input.value = '');
+
+                // Ganti tombol tambah jadi hapus di clone
+                newItem.querySelector('.add-detail').classList.remove('btn-success', 'add-detail');
+                newItem.querySelector('button').classList.add('btn-danger', 'remove-detail');
+                newItem.querySelector('button').innerHTML = '-';
+
+                wrapper.appendChild(newItem);
+            }
+
+            if (e.target.classList.contains('remove-detail')) {
+                e.preventDefault();
+                e.target.closest('.detail-obat-item').remove();
+            }
+        });
+    });
 </script>
 @endsection

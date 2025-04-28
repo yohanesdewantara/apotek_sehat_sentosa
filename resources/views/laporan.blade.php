@@ -3,7 +3,7 @@
 
 @section('artikel')
 
-{{-- Dropdown untuk memilih jenis laporan --}}
+
 <div class="d-flex align-items-center mb-4" style="gap: 10px;">
     <label for="jenisLaporan" class="form-label mb-0">Pilih Laporan :</label>
     <select id="jenisLaporan" class="form-select w-auto">
@@ -12,7 +12,7 @@
     </select>
 </div>
 
-{{-- Filter tanggal dan search --}}
+
 <div class="d-flex justify-content-between align-items-center flex-wrap mb-4 gap-3">
     <div class="d-flex flex-wrap align-items-center gap-2">
         <input type="date" class="form-control" style="width: 200px;">
@@ -25,7 +25,7 @@
     </div>
 </div>
 
-{{-- Bagian Laporan Laba Rugi --}}
+
 <div id="laporanLabaRugi" class="mb-5">
     <h5 class="mb-3">Laporan Laba Rugi</h5>
     <table class="table table-bordered text-center">
@@ -44,12 +44,12 @@
                 <td>Rp. 700.000</td>
                 <td>Rp. 300.000</td>
             </tr>
-            <!-- Tambah data lainnya -->
+
         </tbody>
     </table>
 </div>
 
-{{-- Bagian Laporan Stok --}}
+
 <div id="laporanStok" style="display: none;" class="mb-5">
     <h5 class="mb-3">Laporan Stok</h5>
     <table class="table table-bordered text-center">
@@ -70,19 +70,19 @@
                 <td>30</td>
                 <td>120</td>
             </tr>
-            <!-- Tambah data lainnya -->
+
         </tbody>
     </table>
 </div>
 
-{{-- Tombol Cetak --}}
+
 <div class="mt-4">
     <button class="btn btn-secondary">
         <i class="bi bi-printer me-1"></i> Cetak Laporan
     </button>
 </div>
 
-{{-- Script untuk ganti tampilan berdasarkan pilihan --}}
+
 <script>
     document.getElementById('jenisLaporan').addEventListener('change', function () {
         const jenis = this.value;

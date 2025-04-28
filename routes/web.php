@@ -52,7 +52,7 @@ Route::resource('pembelian', PembelianController::class);
     Route::get('/kelolaobat', [PageController::class, 'kelolaobat']);
     Route::get('/stokopname', [PageController::class, 'stokopname']);
     Route::get('/laporan', [PageController::class, 'laporan']);
-    Route::resource('pembelian', PembelianController::class);
+    // Route::resource('pembelian', PembelianController::class);
 
     // Rute untuk logout
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');

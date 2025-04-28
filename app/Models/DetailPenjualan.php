@@ -24,13 +24,13 @@ class DetailPenjualan extends Model
         'harga_beli'
     ];
 
-    // Relasi ke Penjualan
+
     public function penjualan()
     {
         return $this->belongsTo(Penjualan::class, 'id_penjualan', 'id_penjualan');
     }
 
-    // Relasi ke Detail Obat
+    
     public function detailObat()
     {
         return $this->belongsTo(DetailObat::class, 'id_detailobat', 'id_detailobat');
