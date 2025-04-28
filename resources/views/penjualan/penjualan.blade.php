@@ -1,31 +1,30 @@
 @extends('layouts.main')
-
-@section('title', 'Pembelian')
-
+@section('title', 'penjualan')
 @section('artikel')
 <div class="d-flex justify-content-between mb-3">
     <div>
-        <form action="{{ route('pembelian.index') }}" method="GET" class="d-flex">
+        <form action="{{ route('penjualan.index') }}" method="GET" class="d-flex">
             <input type="text" name="search" id="filterInput" class="form-control d-inline-block" style="width: 200px;" placeholder="🔍 Filter Nama Obat..." value="{{ request('search') }}">
             <button type="submit" class="btn btn-secondary" style="margin-left: 10px;">Cari</button>
         </form>
     </div>
     <div>
-        <a href="{{ route('pembelian.create') }}" class="btn btn-success mb-3">
+        <a href="{{ route('penjualan.create') }}" class="btn btn-success mb-3">
             <i class="bi bi-plus-circle"></i> Tambah
         </a>
     </div>
 </div>
 
-<table class="table table-bordered text-center" id="pembelianTable">
+<table class="table table-bordered text-center" id="penjualanTable">
     <thead class="thead-light">
         <tr>
             <th>No</th>
-            <th>Tanggal Pembelian</th>
+            <th>Nama Admin</th>
+            <th>Tanggal Penjualan</th>
             <th>Nama Obat</th>
-            <th>Jumlah Beli (Qty)</th>
-            <th>Harga Beli</th>
+            <th>Jumlah Terjual</th>
             <th>Harga Jual</th>
+            <th>Harga Beli</th>
             <th>Aksi</th>
         </tr>
     </thead>
@@ -51,12 +50,12 @@
                         <a href="{{ route('pembelian.detail', $detail->id_detailbeli) }}" class="btn btn-info btn-sm">
                             <i class="bi bi-eye"></i> Detail
                         </a>
-
+                        <!-- Tombol Edit -->
                         <a href="{{ route('pembelian.edit', $pembelian->id_pembelian) }}" class="btn btn-warning btn-sm">
                             <i class="bi bi-pencil-square"></i> Edit
                         </a>
 
-
+                        <!-- Tombol Hapus -->
                         <form action="{{ route('pembelian.destroy', $pembelian->id_pembelian) }}" method="POST" style="display:inline-block;">
                             @csrf
                             @method('DELETE')
@@ -74,7 +73,7 @@
     </tbody>
 </table>
 
-
+<!-- Filter Nama Obat Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('filterInput').addEventListener('keyup', function() {
@@ -82,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let rows = document.querySelectorAll('#pembelianTable tbody tr');
 
         rows.forEach(function(row) {
-            let namaObat = row.cells[2].textContent.toLowerCase();
+            let namaObat = row.cells[2].textContent.toLowerCase(); // Kolom Nama Obat
             if (namaObat.includes(input)) {
                 row.style.display = '';
             } else {
@@ -93,3 +92,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

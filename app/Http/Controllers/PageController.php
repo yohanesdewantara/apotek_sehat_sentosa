@@ -30,7 +30,7 @@ class PageController extends Controller
 
     public function penjualan()
     {
-        return view("penjualan");
+        return view('penjualan.penjualan');
     }
 
     public function kelolaobat()
@@ -50,12 +50,9 @@ class PageController extends Controller
 
     public function logout()
     {
-        // Pindahkan logout ke controller AuthController
+
         return redirect('/');
     }
 
-//     public function createpembelian()
-// {
-//     return view('createpembelian');
-// }
+
 }

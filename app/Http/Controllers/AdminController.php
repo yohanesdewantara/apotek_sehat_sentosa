@@ -9,32 +9,32 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
-    // Menampilkan daftar admin
+
     public function index(Request $request)
     {
-        // Mengambil parameter pencarian dari input form
+
         $search = $request->input('search');
 
-        // Query untuk mengambil data admin berdasarkan pencarian
+
         $admin = Admin::query()
             ->when($search, function ($query, $search) {
-                // Filter berdasarkan nama_admin dan email
+
                 return $query->where('nama_admin', 'like', '%' . $search . '%')
                              ->orWhere('email', 'like', '%' . $search . '%');
             })
-            ->get(); // Menjalankan query dan mendapatkan hasil
+            ->get();
 
-        // Mengirim data admin ke view
+
         return view('datauseradmin.datauseradmin', compact('admin'));
     }
 
-    // Menampilkan form tambah admin
+
     public function create()
     {
         return view('datauseradmin.createadmin');
     }
 
-    // Menyimpan admin baru
+
     public function store(Request $request)
     {
         $request->validate([
@@ -52,14 +52,14 @@ class AdminController extends Controller
         return redirect()->route('admin.index')->with('success', 'Admin baru berhasil dibuat.');
     }
 
-    // Menampilkan form edit admin
+
     public function edit($id)
     {
         $admin = Admin::findOrFail($id);
         return view('datauseradmin.editadmin', compact('admin'));
     }
 
-    // Menyimpan perubahan admin
+
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -81,7 +81,7 @@ class AdminController extends Controller
         return redirect()->route('admin.index')->with('success', 'Data admin berhasil diperbarui.');
     }
 
-    // Menghapus admin
+
     public function destroy($id_admin)
     {
         $admin = Admin::findOrFail($id_admin);

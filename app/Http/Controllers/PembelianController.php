@@ -5,6 +5,7 @@
     use App\Models\DetailPembelian;
     use App\Models\Pembelian;
     use App\Models\DetailObat;
+    use App\Models\Admin;
     use Illuminate\Http\Request;
 
     class PembelianController extends Controller
@@ -17,14 +18,16 @@
 
         public function create()
         {
+
             $detailObats = DetailObat::with('obat')->get();
-            return view('pembelian.createpembelian', compact('detailObats'));
+            $admins = Admin::all();
+            return view('pembelian.createpembelian', compact('detailObats', 'admins'));
         }
 
         public function store(Request $request)
     {
         $request->validate([
-            'nama_admin'     => 'required|string|max:255',
+            'id_admin'       => 'required|exists:admin,id_admin',
             'tgl_pembelian'  => 'required|date',
             'nama_obat'      => 'required|string|max:255',
             'jenis_obat'     => 'required|string|max:255',
@@ -35,35 +38,37 @@
             'tgl_kadaluarsa' => 'required|date',
         ]);
 
-        // 1. Simpan ke tabel obat
+
         $obat = \App\Models\Obat::create([
-            'id_rak'           => 1, // atau ambil default rak, nanti bisa diatur
+            'id_rak'           => 1,
+            'id_admin' => $request->id_admin,
             'nama_obat'        => $request->nama_obat,
-            'stok_total'       => $request->jumlah_beli, // stok total awal = jumlah beli
+            'stok_total'       => $request->jumlah_beli,
             'keterangan_obat'  => $request->keterangan_obat,
             'jenis_obat'       => $request->jenis_obat,
             'harga_beli'       => $request->harga_beli,
             'harga_jual'       => $request->harga_jual,
         ]);
 
-        // 2. Simpan ke tabel detail_obat
+        //Simpan ke tabel detail_obat
         $detailObat = \App\Models\DetailObat::create([
             'id_obat'      => $obat->id_obat,
             'stok'         => $request->jumlah_beli,
             'tgl_kadaluarsa'=> $request->tgl_kadaluarsa,
         ]);
 
-        // 3. Hitung total harga
+        //ini Hitung total harga
         $total_harga = $request->jumlah_beli * $request->harga_beli;
 
-        // 4. Simpan ke tabel pembelian
+        //Simpan ke tabel pembelian
         $pembelian = Pembelian::create([
             'tgl_pembelian' => $request->tgl_pembelian,
             'total'         => $total_harga,
-            'id_admin'      => auth()->user()->id ?? 1, // fallback admin id 1 kalau belum login
+
+            'id_admin' => $request->id_admin,
         ]);
 
-        // 5. Simpan ke tabel detail_pembelian
+
         DetailPembelian::create([
             'id_pembelian'   => $pembelian->id_pembelian,
             'id_detailobat'  => $detailObat->id_detailobat,
@@ -79,7 +84,7 @@
 
     public function showDetail($id_detailbeli)
     {
-        // Load relasi pembelian → admin, detailObat → obat
+
         $detail = DetailPembelian::with(['pembelian.admin', 'detailObat.obat'])->findOrFail($id_detailbeli);
 
         $pembelian = $detail->pembelian;
@@ -89,9 +94,9 @@
             'detail' => $detail,
             'nama_admin' => $pembelian->admin->nama_admin ?? 'Admin Tidak Diketahui',
             'nama_obat' => $obat->nama_obat ?? 'Tidak Diketahui',
-            'jenis_obat' => $obat->jenis_obat ?? '-',             // ambil dari field 'jenis_obat' di tabel obat
-            'keterangan_obat' => $obat->keterangan_obat ?? '-',   // ambil dari field 'keterangan_obat' di tabel obat
-            'harga_jual' => $obat->harga_jual ?? 0,               // ambil dari field 'harga_jual' di tabel obat
+            'jenis_obat' => $obat->jenis_obat ?? '-',
+            'keterangan_obat' => $obat->keterangan_obat ?? '-',
+            'harga_jual' => $obat->harga_jual ?? 0,
             'tgl_kadaluarsa' => $detail->tgl_kadaluarsa ?? now(),
             'total' => $detail->jumlah_beli * $detail->harga_beli,
         ]);
@@ -106,11 +111,11 @@
         public function update(Request $request, $id)
     {
         $pembelian = Pembelian::with('detailPembelian.detailObat.obat')->findOrFail($id);
-        $detailPembelian = $pembelian->detailPembelian->first(); // Ambil detail pembelian pertama
+        $detailPembelian = $pembelian->detailPembelian->first();
         $detailObat = $detailPembelian->detailObat;
         $obat = $detailObat->obat;
 
-        // Validasi input
+
         $request->validate([
             'nama_admin'        => 'required|string|max:255',
             'tgl_pembelian'     => 'required|date',
@@ -123,26 +128,26 @@
             'tgl_kadaluarsa'    => 'required|date',
         ]);
 
-        // Hitung total
+
         $total = $request->jumlah_beli * $request->harga_beli;
 
-        // Update Obat
+
         $obat->update([
             'nama_obat'        => $request->nama_obat,
             'jenis_obat'       => $request->jenis_obat,
             'keterangan_obat'  => $request->keterangan_obat,
             'harga_beli'       => $request->harga_beli,
             'harga_jual'       => $request->harga_jual,
-            'stok_total'       => $request->jumlah_beli, // Update stok total obat
+            'stok_total'       => $request->jumlah_beli,
         ]);
 
-        // Update Detail Obat
+
         $detailObat->update([
-            'stok'             => $request->jumlah_beli, // Update stok
-            'tgl_kadaluarsa'   => $request->tgl_kadaluarsa, // Update tanggal kadaluarsa
+            'stok'             => $request->jumlah_beli,
+            'tgl_kadaluarsa'   => $request->tgl_kadaluarsa,
         ]);
 
-        // Update Detail Pembelian
+
         $detailPembelian->update([
             'jumlah_beli'      => $request->jumlah_beli,  // Update jumlah beli
             'harga_beli'       => $request->harga_beli,   // Update harga beli
@@ -171,21 +176,20 @@
             $detailObat = $detailPembelian->detailObat;
             $obat = $detailObat->obat ?? null;
 
-            // Hapus detail pembelian terlebih dahulu
+
             $detailPembelian->delete();
 
-            // Hapus detail obat setelah tidak ada yang terkait
+
             if ($detailObat) {
                 $detailObat->delete();
             }
 
-            // Baru hapus obat setelah detail_obat-nya terhapus
             if ($obat) {
                 $obat->delete();
             }
         }
 
-        // Terakhir hapus data pembelian
+
         $pembelian->delete();
 
         return redirect()->route('pembelian.index')->with('success', 'Data pembelian dan relasi berhasil dihapus.');
