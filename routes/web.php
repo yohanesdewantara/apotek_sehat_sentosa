@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PembelianController;
+<<<<<<< HEAD
+=======
+use App\Http\Controllers\PenjualanController;
+>>>>>>> 16007cd (commit pembelian)
 use App\Http\Controllers\AdminController;
 
 // Redirect ke /login saat akses root URL
@@ -36,19 +40,36 @@ Route::middleware('admin.auth')->group(function () {
     Route::delete('/admin/{id_admin}', [AdminController::class, 'destroy'])->name('admin.destroy'); // Hapus admin
 
 
-// Route::get('/pembelian/detail/{id_detailobat}', [PembelianController::class, 'show'])->name('pembelian.detail');
-
+// route halaman pembelian
 
 Route::get('/pembelian/detail/{id_detailbeli}', [PembelianController::class, 'showDetail'])->name('pembelian.detail');
 
+<<<<<<< HEAD
 
 
+=======
+// Resource pembelian
+>>>>>>> 16007cd (commit pembelian)
 Route::resource('pembelian', PembelianController::class);
 Route::resource('penjualan', PenjualanController::class);
 
 
 
+<<<<<<< HEAD
     Route::get('/penjualan', [PageController::class, 'penjualan']);
+=======
+
+    // Tambahkan resource untuk Penjualan
+Route::resource('penjualan', PenjualanController::class);
+
+// Atau kalau mau detail manual:
+Route::get('/penjualan/detail/{id}', [PenjualanController::class, 'showDetail'])->name('penjualan.detail');
+
+Route::get('penjualan/{id}/detail', [PenjualanController::class, 'show'])->name('penjualan.show');
+
+
+
+>>>>>>> 16007cd (commit pembelian)
     Route::get('/kelolaobat', [PageController::class, 'kelolaobat']);
     Route::get('/stokopname', [PageController::class, 'stokopname']);
     Route::get('/laporan', [PageController::class, 'laporan']);

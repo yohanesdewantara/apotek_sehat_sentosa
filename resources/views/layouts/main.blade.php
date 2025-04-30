@@ -21,6 +21,7 @@
     padding-left: 250px; /* Lebar sidebar */
 }
 
+<<<<<<< HEAD
 .navbar {
     background: linear-gradient(to right, #4caf50, #66bb6a);
     border-bottom: 2px solid #81c784;
@@ -32,6 +33,18 @@
     width: 100%;
     z-index: 1000;
 }
+=======
+        /* Menjadikan navbar tetap di atas */
+        .navbar {
+            background: linear-gradient(to right, #4caf50, #66bb6a);
+            border-bottom: 2px solid #81c784;
+            padding: 10px 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+>>>>>>> 16007cd (commit pembelian)
 
 .sidebar {
     background-color: #e8f5e9;
@@ -60,11 +73,120 @@
         padding-left: 200px;
     }
 
+<<<<<<< HEAD
     .main-content {
         margin-left: 200px;
     }
 }
+=======
+        .sidebar {
+            background-color: #e8f5e9;
+            height: 100vh;
+            border-right: 2px solid #81c784;
+            padding: 20px 10px;
+        }
 
+        .sidebar .btn {
+            margin-bottom: 10px;
+            text-align: left;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+        }
+
+        .sidebar .btn:hover,
+        .sidebar .btn.active {
+            background-color: #388e3c !important;
+            color: white !important;
+            transform: translateX(5px);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .sidebar .btn .badge {
+            position: absolute;
+            right: 15px;
+            top: 8px;
+            background-color: red;
+            color: white;
+        }
+
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+            background-color: #ffffff;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .card-header {
+            font-weight: bold;
+            background-color: #43a047;
+            color: white;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Menghapus fixed footer */
+        footer {
+            background-color: #388e3c;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+
+        .breadcrumb {
+            background-color: transparent;
+            padding-left: 0;
+        }
+
+        .breadcrumb-item a {
+            color: #388e3c;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb-item a:hover {
+            color: #2e7d32;
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item.active {
+            color: #1b5e20;
+        }
+
+        .sidebar .btn-danger {
+            background-color: #e53935 !important;
+            color: white !important;
+            box-shadow: none !important;
+        }
+
+        .sidebar .btn-danger:hover,
+        .sidebar .btn-danger:active {
+            background-color: #e53935 !important;
+            color: white !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .sidebar .btn i {
+            transition: transform 0.2s ease;
+        }
+
+        .sidebar .btn:hover i {
+            transform: scale(1.15);
+        }
+>>>>>>> 16007cd (commit pembelian)
 
         @media (max-width: 768px) {
             .sidebar {
@@ -144,6 +266,7 @@
                 </a>
             </div>
 
+<<<<<<< HEAD
             <!-- Main content -->
             <div class="main-content">
     <nav aria-label="breadcrumb">
@@ -153,6 +276,15 @@
         </ol>
     </nav>
 
+=======
+            <div class="col-md-10 py-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url('/home') }}">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">@yield('title')</li>
+                    </ol>
+                </nav>
+>>>>>>> 16007cd (commit pembelian)
 
     <div class="card">
         <div class="card-header">
