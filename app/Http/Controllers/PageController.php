@@ -19,8 +19,8 @@ class PageController extends Controller
 
     public function datauseradmin()
 {
-    $admin = Admin::all(); // Ambil semua data dari tabel admin
-    return view("datauseradmin", compact('admin')); // Kirim ke view
+    $admin = Admin::all();
+    return view("datauseradmin", compact('admin'));
 }
 
     public function pembelian()
@@ -30,7 +30,7 @@ class PageController extends Controller
 
     public function penjualan()
     {
-        return view('penjualan.penjualan');
+        return view("penjualan");
     }
 
     public function kelolaobat()

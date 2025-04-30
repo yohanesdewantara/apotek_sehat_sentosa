@@ -23,12 +23,14 @@
                     value="{{ old('tgl_pembelian', $pembelian->tgl_pembelian) }}" required>
             </div>
 
+
             <div class="form-group">
                 <label for="nama_obat">Nama Obat</label>
                 <input type="text" name="nama_obat" id="nama_obat" class="form-control"
                     value="{{ old('nama_obat', optional($pembelian->detailPembelian->first()->detailObat->obat)->nama_obat) }}"
                     required>
             </div>
+
 
             <div class="form-group">
                 <label for="jenis_obat">Jenis Obat</label>
@@ -53,6 +55,7 @@
                     required>
             </div>
 
+
             <div class="form-group">
                 <label for="harga_beli">Harga Beli</label>
                 <input type="number" name="harga_beli" id="harga_beli" class="form-control"
@@ -60,12 +63,14 @@
                     required>
             </div>
 
+
             <div class="form-group">
                 <label for="harga_jual">Harga Jual</label>
                 <input type="number" name="harga_jual" id="harga_jual" class="form-control"
                     value="{{ old('harga_jual', optional($pembelian->detailPembelian->first()->detailObat->obat)->harga_jual) }}"
                     required>
             </div>
+
 
             <div class="form-group">
                 <label for="tgl_kadaluarsa">Tanggal Kadaluwarsa</label>
@@ -86,6 +91,7 @@
             <a href="{{ route('pembelian.index') }}" class="btn btn-secondary">Kembali</a>
         </form>
     </div>
+
 
 <script>
     const qtyInput = document.getElementById('jumlah_beli');

@@ -4,7 +4,7 @@
 @section('artikel')
     <div class="d-flex justify-content-between mb-3">
         <div>
-            <!-- Form pencarian dengan metode GET -->
+
             <form action="{{ route('admin.index') }}" method="GET" class="d-flex">
                 <input type="text" name="search" class="form-control d-inline-block" style="width: 200px;" placeholder="🔍 Filter Nama Admin..." value="{{ request('search') }}">
                 <button type="submit" class="btn btn-secondary" style="margin-left: 10px;">Cari</button>

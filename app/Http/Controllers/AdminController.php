@@ -9,13 +9,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
-
+    // menampilkan daftar admin
     public function index(Request $request)
     {
-
         $search = $request->input('search');
-
-
+        // mengambil data admin berdasarkan pencarian
         $admin = Admin::query()
             ->when($search, function ($query, $search) {
 
@@ -28,13 +26,13 @@ class AdminController extends Controller
         return view('datauseradmin.datauseradmin', compact('admin'));
     }
 
-
+    // tambah  baru
     public function create()
     {
         return view('datauseradmin.createadmin');
     }
 
-
+    // menyimpan admin baru
     public function store(Request $request)
     {
         $request->validate([
@@ -52,14 +50,14 @@ class AdminController extends Controller
         return redirect()->route('admin.index')->with('success', 'Admin baru berhasil dibuat.');
     }
 
-
+    // menampilkan edit admin
     public function edit($id)
     {
         $admin = Admin::findOrFail($id);
         return view('datauseradmin.editadmin', compact('admin'));
     }
 
-
+    // menyimpan perubahan admin
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -81,7 +79,7 @@ class AdminController extends Controller
         return redirect()->route('admin.index')->with('success', 'Data admin berhasil diperbarui.');
     }
 
-
+    // menghapus admin
     public function destroy($id_admin)
     {
         $admin = Admin::findOrFail($id_admin);
