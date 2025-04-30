@@ -2,26 +2,19 @@
 
 namespace App\Http\Controllers;
 use App\Models\Penjualan;
-<<<<<<< HEAD
-=======
 use App\Models\DetailPenjualan;
 use App\Models\Admin;
 use App\Models\Obat;
->>>>>>> 16007cd (commit pembelian)
 use Illuminate\Http\Request;
 
 class PenjualanController extends Controller
 {
-<<<<<<< HEAD
     //
     public function index()
     {
         $data = Penjualan::with('detailPembelian.detailObat.obat')->get();
         return view('penjualan.penjualan', compact('data'));
-=======
-    public function index()
-    {
-        // Ambil semua penjualan beserta admin dan detail_penjualan
+  // Ambil semua penjualan beserta admin dan detail_penjualan
         $penjualans = Penjualan::with(['admin', 'detailPenjualan'])->get();
 
         // Mengirimkan variabel penjualans ke view
@@ -81,6 +74,5 @@ class PenjualanController extends Controller
     {
         // Untuk hapus data penjualan dari database
         return redirect()->route('penjualan.index')->with('success', 'Data penjualan berhasil dihapus.');
->>>>>>> 16007cd (commit pembelian)
     }
 }
