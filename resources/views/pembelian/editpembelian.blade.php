@@ -2,110 +2,110 @@
 @section('title', 'Edit Pembelian')
 
 @section('artikel')
-    <div class="container">
-        <h2>Edit Pembelian</h2>
-
-        <form action="{{ route('pembelian.update', ['pembelian' => $pembelian->id_pembelian]) }}" method="POST">
-            @csrf
-            @method('PUT')
-
-
-            <div class="form-group">
-                <label for="nama_admin">Nama Admin</label>
-                <input type="text" name="nama_admin" id="nama_admin" class="form-control"
-                    value="{{ old('nama_admin', optional($pembelian->admin)->nama_admin) }}" required>
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5>Edit Pembelian</h5>
             </div>
+            <div class="card-body">
+            <form action="{{ route('pembelian.update', $pembelian->id_pembelian) }}" method="POST">
+    @csrf
+    @method('PUT')
+
+                    <div class="form-group mb-3">
+                        <label>ID Pembelian</label>
+                        <input type="text" class="form-control" value="{{ $pembelian->id_pembelian }}" readonly>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label>Tanggal Pembelian</label>
+                        <input type="date" name="tgl_pembelian" class="form-control"
+                            value="{{ old('tgl_pembelian', $pembelian->tgl_pembelian) }}" readonly>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label>Nama Admin</label>
+                        <select name="id_admin" class="form-control" required>
+                            <option value="">-- Pilih Admin --</option>
+                            @foreach ($admins as $admin)
+                                <option value="{{ $admin->id_admin }}" {{ $admin->id_admin == $pembelian->id_admin ? 'selected' : '' }}>
+                                    {{ $admin->nama_admin }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <h5 class="mt-4">Detail Obat Dibeli</h5>
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Nama Obat</th>
+                                <th>Harga Beli</th>
+                                <th>Jumlah Beli</th>
+                                <th>Total</th>
+                                <th>Tanggal Kadaluarsa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($pembelian->detailPembelian as $index => $detail)
+                                <tr>
+                                    <td>
+                                    <input type="hidden" name="id_detailbeli[]" value="{{ $detail->id_detailbeli }}">
 
 
-            <div class="form-group">
-                <label for="tgl_pembelian">Tanggal Pembelian</label>
-                <input type="date" name="tgl_pembelian" id="tgl_pembelian" class="form-control"
-                    value="{{ old('tgl_pembelian', $pembelian->tgl_pembelian) }}" required>
+                                        <input type="text" class="form-control"
+                                            value="{{ $detail->detailObat->obat->nama_obat ?? 'N/A' }}" readonly>
+                                    </td>
+                                    <td>
+                                    <input type="number" class="form-control harga-beli"value="{{ $detail->harga_beli }}" readonly>
+
+                                    </td>
+                                    <td>
+                                    <input type="number" name="jumlah_beli[]" value="{{ $detail->jumlah_beli }}" class="form-control jumlah-beli">
+
+
+
+
+                                    </td>
+                                    <td>
+                                    <input type="number" class="form-control total-harga"
+                                    value="{{ $detail->harga_beli * $detail->jumlah_beli }}" readonly>
+                                    </td>
+                                    <td>
+                                    <input type="date" name="tgl_kadaluarsa[]" class="form-control"
+                                    value="{{ \Carbon\Carbon::parse($detail->tgl_kadaluarsa)->format('Y-m-d') }}"
+                                    required>
+
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    <button type="submit" class="btn btn-primary">Update Pembelian</button>
+                    <a href="{{ route('pembelian.index') }}" class="btn btn-secondary">Kembali</a>
+                </form>
+
             </div>
-
-
-            <div class="form-group">
-                <label for="nama_obat">Nama Obat</label>
-                <input type="text" name="nama_obat" id="nama_obat" class="form-control"
-                    value="{{ old('nama_obat', optional($pembelian->detailPembelian->first()->detailObat->obat)->nama_obat) }}"
-                    required>
-            </div>
-
-
-            <div class="form-group">
-                <label for="jenis_obat">Jenis Obat</label>
-                <input type="text" name="jenis_obat" id="jenis_obat" class="form-control"
-                    value="{{ old('jenis_obat', optional($pembelian->detailPembelian->first()->detailObat->obat)->jenis_obat) }}"
-                    required>
-            </div>
-
-
-            <div class="form-group">
-                <label for="keterangan_obat">Keterangan Obat</label>
-                <input type="text" name="keterangan_obat" id="keterangan_obat" class="form-control"
-                    value="{{ old('keterangan_obat', optional($pembelian->detailPembelian->first()->detailObat->obat)->keterangan_obat) }}"
-                    required>
-            </div>
-
-
-            <div class="form-group">
-                <label for="jumlah_beli">Jumlah Beli</label>
-                <input type="number" name="jumlah_beli" id="jumlah_beli" class="form-control"
-                    value="{{ old('jumlah_beli', $pembelian->detailPembelian->first()->jumlah_beli) }}"
-                    required>
-            </div>
-
-
-            <div class="form-group">
-                <label for="harga_beli">Harga Beli</label>
-                <input type="number" name="harga_beli" id="harga_beli" class="form-control"
-                    value="{{ old('harga_beli', $pembelian->detailPembelian->first()->harga_beli) }}"
-                    required>
-            </div>
-
-
-            <div class="form-group">
-                <label for="harga_jual">Harga Jual</label>
-                <input type="number" name="harga_jual" id="harga_jual" class="form-control"
-                    value="{{ old('harga_jual', optional($pembelian->detailPembelian->first()->detailObat->obat)->harga_jual) }}"
-                    required>
-            </div>
-
-
-            <div class="form-group">
-                <label for="tgl_kadaluarsa">Tanggal Kadaluwarsa</label>
-                <input type="date" name="tgl_kadaluarsa" id="tgl_kadaluarsa" class="form-control"
-                    value="{{ old('tgl_kadaluarsa', $pembelian->detailPembelian->first()->tgl_kadaluarsa) }}"
-                    required>
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="total">Total</label>
-                <input type="text" name="total" id="total" class="form-control"
-                    value="Rp {{ number_format($pembelian->total, 0, ',', '.') }}" readonly>
-            </div>
-
-
-
-            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-            <a href="{{ route('pembelian.index') }}" class="btn btn-secondary">Kembali</a>
-        </form>
+        </div>
     </div>
 
 
 <script>
-    const qtyInput = document.getElementById('jumlah_beli');
-    const hargaBeliInput = document.getElementById('harga_beli');
-    const totalHargaInput = document.getElementById('total');
+document.addEventListener('DOMContentLoaded', function () {
+    const jumlahInputs = document.querySelectorAll('.jumlah-beli');
 
-    function hitungTotal() {
-        const qty = parseInt(qtyInput.value) || 0;
-        const hargaBeli = parseInt(hargaBeliInput.value) || 0;
-        totalHargaInput.value = qty * hargaBeli;
-    }
-
-    qtyInput.addEventListener('input', hitungTotal);
-    hargaBeliInput.addEventListener('input', hitungTotal);
+    jumlahInputs.forEach(input => {
+        input.addEventListener('input', function () {
+            const row = input.closest('tr');
+            const harga = parseFloat(row.querySelector('.harga-beli').value) || 0;
+            const jumlah = parseInt(input.value) || 0;
+            const totalInput = row.querySelector('.total-harga');
+            totalInput.value = harga * jumlah;
+        });
+    });
+});
 </script>
-
 @endsection
+

@@ -9,6 +9,12 @@
     <div class="card-body">
 
         <div class="mb-3">
+            <label for="id_pembelian">ID Pembelian</label>
+            <input type="text" name="id_pembelian" id="id_pembelian" class="form-control"
+                value="{{ $pembelian->id_pembelian }}" readonly>
+        </div>
+
+        <div class="mb-3">
             <label for="nama_admin">Nama Admin</label>
             <input type="text" name="nama_admin" id="nama_admin" class="form-control"
                 value="{{ $pembelian->admin->nama_admin ?? 'Admin Tidak Diketahui' }}" readonly>
@@ -32,32 +38,31 @@
                 </tr>
             </thead>
             <tbody>
-    @php
-        $no = 1;
-        $grandTotal = 0;
-    @endphp
-    @foreach($details as $detail)
-        @php
-            $total = $detail->jumlah_beli * $detail->harga_beli;
-            $grandTotal += $total;
-        @endphp
-        <tr class="text-center">
-            <td>{{ $no++ }}</td>
-            <td>{{ $detail->detailObat->obat->nama_obat ?? '-' }}</td>
-            <td>{{ $detail->jumlah_beli }}</td>
-            <td>Rp {{ number_format($detail->harga_beli, 0, ',', '.') }}</td>
-            <td>{{ \Carbon\Carbon::parse($detail->tgl_kadaluarsa)->format('d/m/Y') }}</td>
-            <td>Rp {{ number_format($total, 0, ',', '.') }}</td>
-        </tr>
-    @endforeach
-</tbody>
-<tfoot>
-    <tr class="text-center fw-bold bg-light">
-        <td colspan="5">Total Pembelian</td>
-        <td>Rp {{ number_format($grandTotal, 0, ',', '.') }}</td>
-    </tr>
-</tfoot>
-
+                @php
+                    $no = 1;
+                    $grandTotal = 0;
+                @endphp
+                @foreach($details as $detail)
+                    @php
+                        $total = $detail->jumlah_beli * $detail->harga_beli;
+                        $grandTotal += $total;
+                    @endphp
+                    <tr class="text-center">
+                        <td>{{ $no++ }}</td>
+                        <td>{{ $detail->detailObat->obat->nama_obat ?? '-' }}</td>
+                        <td>{{ $detail->jumlah_beli }}</td>
+                        <td>Rp {{ number_format($detail->harga_beli, 0, ',', '.') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($detail->tgl_kadaluarsa)->format('d/m/Y') }}</td>
+                        <td>Rp {{ number_format($total, 0, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr class="text-center fw-bold bg-light">
+                    <td colspan="5">Total Pembelian</td>
+                    <td>Rp {{ number_format($grandTotal, 0, ',', '.') }}</td>
+                </tr>
+            </tfoot>
         </table>
 
         <a href="{{ route('pembelian.index') }}" class="btn btn-secondary mt-3">

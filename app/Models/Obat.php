@@ -26,4 +26,10 @@ public function detailObat()
     return $this->hasMany(DetailObat::class, 'id_obat', 'id_obat');
 }
 
+public function rakObat()
+{
+    return $this->belongsTo(RakObat::class, 'id_rak', 'id_rak');  // Gunakan 'id_rak' sebagai foreign key
+}
+
+
 }

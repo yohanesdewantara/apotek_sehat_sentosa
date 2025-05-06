@@ -5,6 +5,11 @@
     <form action="{{ route('pembelian.store') }}" method="POST">
         @csrf
 
+        <div class="form-group mb-3">
+            <label for="id_pembelian">ID Pembelian</label>
+            <input type="text" name="id_pembelian" id="id_pembelian" class="form-control" value="{{ $nextId }}" readonly>
+        </div>
+
         <!-- Tanggal dan Admin -->
         <div class="form-group mb-3">
             <label for="tgl_pembelian">Tanggal Pembelian</label>

@@ -19,6 +19,7 @@ class Pembelian extends Model
     public function admin()
     {
         return $this->belongsTo(Admin::class, 'id_admin');
+
     }
 
 

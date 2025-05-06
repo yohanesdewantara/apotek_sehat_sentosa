@@ -24,6 +24,7 @@
     <thead class="thead-light">
         <tr>
             <th>No</th>
+            <th>ID Pembelian</th>
             <th>Tanggal Pembelian</th>
             <th>Nama Admin</th>
             <th>Total Pembelian</th>
@@ -35,9 +36,12 @@
         @foreach($data as $pembelian)
             <tr>
                 <td>{{ $no }}</td>
+                <td>{{ $pembelian->id_pembelian }}</td>
                 <td>{{ \Carbon\Carbon::parse($pembelian->tgl_pembelian)->format('d/m/Y') }}</td>
                 <td>{{ $pembelian->admin->nama_admin ?? 'Admin Tidak Ditemukan' }}</td>
+
                 <td>Rp {{ number_format($pembelian->total, 0, ',', '.') }}</td>
+
                 <td>
                     <a href="{{ route('pembelian.detail', $pembelian->id_pembelian) }}" class="btn btn-info btn-sm">
                         <i class="bi bi-eye"></i> Detail
