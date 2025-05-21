@@ -22,5 +22,9 @@ class DetailObat extends Model
     return $this->belongsTo(Obat::class, 'id_obat', 'id_obat');
 }
 
+public function detailPembelian()
+{
+    return $this->belongsTo(DetailPembelian::class, 'id_detailbeli', 'id_detailbeli');
+}
 
 }

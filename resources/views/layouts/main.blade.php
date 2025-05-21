@@ -1,6 +1,4 @@
-<head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1,<!doctype html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -73,9 +71,17 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         /* Sidebar styles */
@@ -149,7 +155,7 @@
         /* Button separator line */
         .sidebar hr {
             margin: 15px 0;
-            border-color: #9ccc9f;
+            border-color:rgb(42, 161, 49);
             opacity: 0.5;
         }
 
@@ -171,7 +177,8 @@
         .main-content {
             transition: all 0.3s ease;
             padding-top: 20px;
-            padding-bottom: 50px; /* Space for footer */
+            padding-bottom: 50px;
+            /* Space for footer */
         }
 
         .main-content.expanded {
@@ -216,10 +223,24 @@
             }
         }
 
-        footer {
-            position: fixed;
-            left: 0;
-            bottom: 0;
+        /* dibawah ini untuk footer fixed */
+            footer {
+                position: fixed;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                background: linear-gradient(135deg, #2e7d32, #388e3c);
+                color: white;
+                text-align: center;
+                padding: 12px 0;
+                font-size: 14px;
+                box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.1);
+                z-index: 1010;
+            }
+
+        /* dibawah ini untuk footer tidak fixed */
+
+        /* footer {
             width: 100%;
             background: linear-gradient(135deg, #2e7d32, #388e3c);
             color: white;
@@ -228,7 +249,8 @@
             font-size: 14px;
             box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.1);
             z-index: 1010;
-        }
+        } */
+
 
         .breadcrumb {
             background-color: transparent;
@@ -283,8 +305,13 @@
         }
 
         @keyframes highlightRow {
-            0% { background-color: rgba(76, 175, 80, 0.2); }
-            100% { background-color: transparent; }
+            0% {
+                background-color: rgba(76, 175, 80, 0.2);
+            }
+
+            100% {
+                background-color: transparent;
+            }
         }
 
         /* Customized DataTable styling */
@@ -364,8 +391,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         /* Google Font - Nunito */
@@ -433,9 +465,17 @@
             }
 
             @keyframes float {
-                0% { transform: translateY(0px); }
-                50% { transform: translateY(-8px); }
-                100% { transform: translateY(0px); }
+                0% {
+                    transform: translateY(0px);
+                }
+
+                50% {
+                    transform: translateY(-8px);
+                }
+
+                100% {
+                    transform: translateY(0px);
+                }
             }
 
             #mobile-toggle span {
@@ -476,7 +516,8 @@
             <i class="bi bi-list"></i>
         </div>
         <a class="navbar-brand" href="#">
-            <i class="bi bi-capsule-fill mr-2 logo-pill"></i> Apotek Sehat Sentosa <span class="d-none d-sm-inline">💊</span>
+            <i class="bi bi-capsule-fill mr-2 logo-pill"></i> Apotek Sehat Sentosa <span
+                class="d-none d-sm-inline">💊</span>
         </a>
         <div class="ml-auto dropdown">
             <a class="dropdown-toggle text-white d-flex align-items-center" href="#" role="button" id="adminDropdown"
@@ -502,6 +543,7 @@
         </div>
     </nav>
 
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
@@ -510,9 +552,9 @@
                 <button id="mobile-toggle" class="btn btn-success">
                     <i class="bi bi-arrows-collapse"></i>
                 </button>
+
                 <a href="{{ url('/home') }}"
-                    class="btn btn-success btn-block {{ request()->is('home') ? 'active' : '' }}"
-                    data-title="Home">
+                    class="btn btn-success btn-block mt-2{{ request()->is('home') ? 'active' : '' }}" data-title="Home">
                     <i class="bi bi-house-fill"></i> <span>Home</span>
                 </a>
                 <hr>
@@ -560,6 +602,33 @@
                     </ol>
                 </nav>
 
+                <!-- Tambahkan kode berikut pada file layouts/main.blade.php, biasanya di bawah navbar atau di awal konten utama -->
+
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <ul class="mb-0">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
                 <div class="card">
                     <div class="card-header">
                         @yield('title')
@@ -585,7 +654,7 @@
         new DataTable('#example');
 
         // Sidebar toggle functionality
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('main-content');
             const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -620,7 +689,7 @@
             window.addEventListener('resize', adjustForScreenSize);
 
             // Desktop toggle
-            sidebarToggle.addEventListener('click', function() {
+            sidebarToggle.addEventListener('click', function () {
                 sidebar.classList.toggle('collapsed');
                 mainContent.classList.toggle('expanded');
                 body.classList.toggle('sidebar-open');
@@ -641,7 +710,7 @@
 
             // Mobile toggle
             if (mobileToggle) {
-                mobileToggle.addEventListener('click', function() {
+                mobileToggle.addEventListener('click', function () {
                     sidebar.classList.toggle('collapsed');
                     mainContent.classList.toggle('expanded');
                     body.classList.toggle('sidebar-open');
@@ -662,7 +731,7 @@
             if (window.innerWidth <= 768) {
                 const sidebarLinks = sidebar.querySelectorAll('a.btn');
                 sidebarLinks.forEach(link => {
-                    link.addEventListener('click', function() {
+                    link.addEventListener('click', function () {
                         sidebar.classList.add('collapsed');
                         mainContent.classList.add('expanded');
                         body.classList.remove('sidebar-open');

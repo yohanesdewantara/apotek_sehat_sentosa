@@ -13,6 +13,18 @@ use Illuminate\Http\Request;
 
 class PembelianController extends Controller
 {
+    // Array of predefined medicine types
+    private $jenisObatOptions = [
+        'Tablet' => 'Tablet',
+        'Kapsul' => 'Kapsul',
+        'Sirup' => 'Sirup',
+        'Salep' => 'Salep',
+        'Injeksi' => 'Injeksi',
+        'Tetes' => 'Tetes',
+        'Suppositoria' => 'Suppositoria',
+        'Inhaler' => 'Inhaler'
+    ];
+
     public function index(Request $request)
     {
         // Ambil parameter dari URL
@@ -51,91 +63,90 @@ class PembelianController extends Controller
 
         $admins = Admin::all();
         $obats = Obat::all();
+        $jenisObatOptions = $this->jenisObatOptions;
 
-        return view('pembelian.createpembelian', compact('nextId', 'admins', 'obats'));
+        return view('pembelian.createpembelian', compact('nextId', 'admins', 'obats', 'jenisObatOptions'));
     }
 
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'tgl_pembelian' => 'required|date',
-            'id_admin' => 'required|exists:admin,id_admin',
+   // Update the store method in PembelianController.php
 
-            'details.*.tgl_kadaluarsa' => 'required|date|after_or_equal:today',
-            'jumlah_beli' => 'required|array',
-            'harga_beli' => 'required|array',
+public function store(Request $request)
+{
+    $request->validate([
+        'tgl_pembelian' => 'required|date',
+        'id_admin' => 'required|exists:admin,id_admin',
+        'details.*.tgl_kadaluarsa' => 'required|date|after_or_equal:today',
+        'jumlah_beli' => 'required|array',
+        'harga_beli' => 'required|array',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        // Buat pembelian
+        $pembelian = Pembelian::create([
+            'id_pembelian' => $request->id_pembelian,
+            'id_admin' => $request->id_admin,
+            'tgl_pembelian' => $request->tgl_pembelian,
+            'total' => 0,
         ]);
 
+        $totalHarga = 0;
 
-        DB::beginTransaction();
-
-        try {
-            // Buat pembelian
-            $pembelian = Pembelian::create([
-                'id_pembelian' => $request->id_pembelian,
-                'id_admin' => $request->id_admin,
-                'tgl_pembelian' => $request->tgl_pembelian,
-                'total' => 0,
-            ]);
-
-            $totalHarga = 0;
-
-            foreach ($request->obat_id as $index => $obat_id) {
-                if ($obat_id === 'new') {
-                    // Buat obat baru
-                    $obat = Obat::create([
-                        'id_rak' => 1,
-                        'nama_obat' => $request->nama_obat_baru[$index],
-                        'jenis_obat' => $request->jenis_obat_baru[$index],
-                        'keterangan_obat' => $request->keterangan_obat_baru[$index] ?? '',
-                        'stok_total' => $request->jumlah_beli[$index],
-                        'harga_beli' => $request->harga_beli[$index],
-                        'harga_jual' => $request->harga_jual[$index],
-                    ]);
-                } else {
-                    // Update obat lama
-                    $obat = Obat::findOrFail($obat_id);
-                    $obat->stok_total += $request->jumlah_beli[$index];
-                    $obat->save();
-                }
-
-                // Detail obat
-                $tglKadaluarsa = $request->tgl_kadaluarsa[$index];
-
-                $detailObat = DetailObat::create([
-                    'id_obat' => $obat->id_obat,
-                    'stok' => $request->jumlah_beli[$index],
-                    'tgl_kadaluarsa' => $tglKadaluarsa,
-                ]);
-
-                // Detail pembelian
-                DetailPembelian::create([
-                    'id_pembelian' => $pembelian->id_pembelian,
-                    'id_detailobat' => $detailObat->id_detailobat,
-                    'jumlah_beli' => $request->jumlah_beli[$index],
+        foreach ($request->obat_id as $index => $obat_id) {
+            if ($obat_id === 'new') {
+                // Buat obat baru
+                $obat = Obat::create([
+                    'id_rak' => $request->rak_id ?? 1,
+                    'nama_obat' => $request->nama_obat_baru[$index],
+                    'jenis_obat' => $request->jenis_obat_baru[$index],
+                    'keterangan_obat' => $request->keterangan_obat_baru[$index] ?? '',
+                    'stok_total' => $request->jumlah_beli[$index],
                     'harga_beli' => $request->harga_beli[$index],
                     'harga_jual' => $request->harga_jual[$index],
-                    'tgl_pembelian' => $request->tgl_pembelian,
-                    'tgl_kadaluarsa' => $tglKadaluarsa,
                 ]);
-
-                $totalHarga += $request->jumlah_beli[$index] * $request->harga_beli[$index];
+            } else {
+                // Update obat lama
+                $obat = Obat::findOrFail($obat_id);
+                $obat->stok_total += $request->jumlah_beli[$index];
+                $obat->save();
             }
 
-            // Update total harga
-            $pembelian->update(['total' => $totalHarga]);
+            // Detail obat
+            $tglKadaluarsa = $request->tgl_kadaluarsa[$index];
 
-            DB::commit();
-            return redirect()->route('pembelian.index')->with('success', 'Data pembelian berhasil ditambahkan.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Gagal menyimpan pembelian: ' . $e->getMessage());
+            $detailObat = DetailObat::create([
+                'id_obat' => $obat->id_obat,
+                'stok' => $request->jumlah_beli[$index],
+                'tgl_kadaluarsa' => $tglKadaluarsa,
+                'harga_beli' => $request->harga_beli[$index], // Add this line to save the purchase price
+            ]);
+
+            // Detail pembelian
+            DetailPembelian::create([
+                'id_pembelian' => $pembelian->id_pembelian,
+                'id_detailobat' => $detailObat->id_detailobat,
+                'jumlah_beli' => $request->jumlah_beli[$index],
+                'harga_beli' => $request->harga_beli[$index],
+                'harga_jual' => $request->harga_jual[$index],
+                'tgl_pembelian' => $request->tgl_pembelian,
+                'tgl_kadaluarsa' => $tglKadaluarsa,
+            ]);
+
+            $totalHarga += $request->jumlah_beli[$index] * $request->harga_beli[$index];
         }
+
+        // Update total harga
+        $pembelian->update(['total' => $totalHarga]);
+
+        DB::commit();
+        return redirect()->route('pembelian.index')->with('success', 'Data pembelian berhasil ditambahkan.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Gagal menyimpan pembelian: ' . $e->getMessage());
     }
-
-
-
+}
 
     public function showDetail($id_detailbeli)
     {
@@ -149,16 +160,16 @@ class PembelianController extends Controller
     }
 
 
-
     public function edit($id)
     {
-        // $pembelian = Pembelian::with('detailPembelian.detailObat.obat')->findOrFail($id);
         $pembelian = Pembelian::with(['admin', 'detailPembelian.detailObat.obat'])->findOrFail($id);
         $admins = Admin::all();
         $obats = Obat::all();
+        $jenisObatOptions = $this->jenisObatOptions;
 
-        return view('pembelian.editpembelian', compact('pembelian', 'admins', 'obats'));
+        return view('pembelian.editpembelian', compact('pembelian', 'admins', 'obats', 'jenisObatOptions'));
     }
+
     public function update(Request $request, $id)
     {
         $pembelian = Pembelian::findOrFail($id); // Cari pembelian berdasarkan ID
@@ -207,39 +218,37 @@ class PembelianController extends Controller
 
 
     public function destroy($id)
-{
-    $pembelian = Pembelian::with('detailPembelian.detailObat')->findOrFail($id);
+    {
+        $pembelian = Pembelian::with('detailPembelian.detailObat')->findOrFail($id);
 
-    foreach ($pembelian->detailPembelian as $detailPembelian) {
-        $detailObat = $detailPembelian->detailObat;
+        foreach ($pembelian->detailPembelian as $detailPembelian) {
+            $detailObat = $detailPembelian->detailObat;
 
-        // Hapus detail pembelian
-        $detailPembelian->delete();
+            // Hapus detail pembelian
+            $detailPembelian->delete();
 
-        // Hapus detail obat jika tidak terlibat penjualan
-        if ($detailObat) {
-            // Cek apakah detail_obat ini terhubung ke penjualan
-            $adaPenjualan = \App\Models\DetailPenjualan::where('id_detailobat', $detailObat->id_detailobat)->exists();
+            // Hapus detail obat jika tidak terlibat penjualan
+            if ($detailObat) {
+                // Cek apakah detail_obat ini terhubung ke penjualan
+                $adaPenjualan = \App\Models\DetailPenjualan::where('id_detailobat', $detailObat->id_detailobat)->exists();
 
-            if ($adaPenjualan) {
-                return back()->with('error', 'Data tidak bisa dihapus karena sudah terjual.');
+                if ($adaPenjualan) {
+                    return back()->with('error', 'Data tidak bisa dihapus karena sudah terjual.');
+                }
+
+                $obat = $detailObat->obat;
+                if ($obat) {
+                    $obat->stok_total -= $detailPembelian->jumlah_beli;
+                    $obat->save();
+                }
+
+                $detailObat->delete(); // ← hanya dijalankan jika tidak ada penjualan
             }
-
-            $obat = $detailObat->obat;
-            if ($obat) {
-                $obat->stok_total -= $detailPembelian->jumlah_beli;
-                $obat->save();
-            }
-
-            $detailObat->delete(); // ← hanya dijalankan jika tidak ada penjualan
         }
+
+        // Hapus pembelian
+        $pembelian->delete();
+
+        return redirect()->route('pembelian.index')->with('success', 'Data pembelian berhasil dihapus.');
     }
-
-    // Hapus pembelian
-    $pembelian->delete();
-
-    return redirect()->route('pembelian.index')->with('success', 'Data pembelian berhasil dihapus.');
-}
-
-
 }

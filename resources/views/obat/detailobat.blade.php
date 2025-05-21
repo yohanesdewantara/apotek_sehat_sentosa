@@ -48,6 +48,7 @@
                     <th>Jumlah Stok</th>
                     <th>Diskon</th>
                     <th>Harga Beli</th>
+                    <th>Harga Jual</th>
                     <th>Tanggal Kadaluarsa</th>
                     <th>Total</th>
                 </tr>
@@ -59,6 +60,14 @@
                 @endphp
                 @foreach($obat->detailObat as $detail)
                     @php
+                        // Ambil harga jual dari obat atau detail jika tersedia
+                        $hargaJualAwal = $obat->harga_jual;
+
+                        // Hitung harga jual dengan diskon
+                        $diskon = $detail->disc ?? 0;
+                        $hargaJualDiskon = $hargaJualAwal * (1 - ($diskon / 100));
+
+                        // Hitung total untuk baris ini
                         $total = $detail->stok * $detail->harga_beli;
                         $grandTotal += $total;
                     @endphp
@@ -66,16 +75,27 @@
                         <td>{{ $no++ }}</td>
                         <td>{{ $detail->id_detailobat }}</td>
                         <td>{{ $detail->stok }}</td>
-                        <td>{{ $detail->diskon }}%</td>
-                        <td>Rp {{ number_format($detail->harga_beli, 0, ',', '.') }}</td>
+                        <td>{{ $detail->disc }}%</td>
+                        <td>Rp {{ number_format($detail->harga_beli ?? $obat->harga_beli, 0, ',', '.') }}</td>
+                        <td>
+                            @if($diskon > 0)
+                                <span class="text-decoration-line-through text-muted">Rp {{ number_format($hargaJualAwal, 0, ',', '.') }}</span>
+                                <br>
+                                <span class="text-danger">Rp {{ number_format($hargaJualDiskon, 0, ',', '.') }}</span>
+                            @else
+                                Rp {{ number_format($hargaJualAwal, 0, ',', '.') }}
+                            @endif
+                        </td>
                         <td>{{ \Carbon\Carbon::parse($detail->tgl_kadaluarsa)->format('d/m/Y') }}</td>
+
                         <td>Rp {{ number_format($total, 0, ',', '.') }}</td>
+
                     </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="text-center fw-bold bg-light">
-                    <td colspan="6">Total</td>
+                    <td colspan="7">Total</td>
                     <td>Rp {{ number_format($grandTotal, 0, ',', '.') }}</td>
                 </tr>
             </tfoot>

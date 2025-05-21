@@ -1,6 +1,7 @@
 <?php
 
 
+use App\Http\Controllers\LaporanController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\AuthController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ObatController;
+use App\Http\Controllers\StokopnameController;
 use App\Http\Controllers\DashboardController;
 
 
@@ -24,7 +26,7 @@ Route::middleware('guest')->group(function () {
 
 // HALAMAN YANG BUTUH LOGIN //
 Route::middleware('admin.auth')->group(function () {
-    Route::get('/home', [PageController::class, 'home'])->name('home');
+    Route::get('/home', [DashboardController::class, 'index'])->name('home');
 
     // Rute untuk halaman data admin
     Route::get('/datauseradmin', [AdminController::class, 'index'])->name('admin.index'); // Tampilkan daftar admin
@@ -55,8 +57,6 @@ Route::middleware('admin.auth')->group(function () {
     Route::resource('penjualan', PenjualanController::class);
 
 
-
-
     Route::get('/penjualan', [PageController::class, 'penjualan']);
 
     // Tambahkan resource untuk Penjualan
@@ -73,12 +73,24 @@ Route::middleware('admin.auth')->group(function () {
     Route::get('/kelolaobat', [ObatController::class, 'kelolaobat']);
     Route::resource('obat', ObatController::class);
     Route::get('/obat/{id}/detail', [ObatController::class, 'show'])->name('obat.show');
+    Route::delete('/obat/{id}', [ObatController::class, 'destroy'])->name('obat.destroy');
+    Route::get('/obat/info/{id_obat}', [ObatController::class, 'getObatInfo'])->name('obat.info');
+
+    // Laporan routes
+Route::get('/laporan', [App\Http\Controllers\LaporanController::class, 'index'])->name('laporan.index');
+Route::get('/laporan/stok_fifo', [App\Http\Controllers\LaporanController::class, 'stokFIFO'])->name('laporan.stok_fifo');
+Route::get('/laporan/laba_rugi', [App\Http\Controllers\LaporanController::class, 'labaRugi'])->name('laporan.laba-rugi');
 
 
+    Route::get('/check-stok/{id_obat}/{jumlah}', [App\Http\Controllers\PenjualanController::class, 'checkStok']);
 
-    Route::get('/stokopname', [PageController::class, 'stokopname']);
-    Route::get('/laporan', [PageController::class, 'laporan']);
-    // Route::resource('pembelian', PembelianController::class);
+    // Rute StokOpname - gunakan resource controller
+    Route::resource('stokopname', StokopnameController::class);
+
+
+Route::get('/obat/diskon/{id}', [ObatController::class, 'showDiskon'])->name('obat.diskon');
+Route::post('/obat/diskon/{id}', [ObatController::class, 'simpanDiskon'])->name('obat.simpanDiskon');
+
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
