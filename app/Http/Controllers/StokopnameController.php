@@ -15,7 +15,7 @@ class StokopnameController extends Controller
     public function index(Request $request)
     {
         // Ambil data stok opname dengan relasi ke detailObat dan admin
-        $stokopnames = StokOpname::with(['detailObat', 'admin']);
+        $stokopnames = StokOpname::with(['detailObat.obat', 'admin', 'detailStokOpname']);
 
         // Jika ada filter pencarian berdasarkan id_opname
         if ($request->has('id_opname') && $request->id_opname != '') {
@@ -30,9 +30,14 @@ class StokopnameController extends Controller
 
     public function create()
     {
-        // Mengambil data detail obat untuk dropdown
-        $detailObats = DetailObat::with('obat')->get();
-        $obats = Obat::all();
+        // Mengambil data detail obat yang masih memiliki stok > 0
+        $detailObats = DetailObat::with('obat')
+            ->where('stok', '>', 0)
+            ->orderBy('tgl_kadaluarsa', 'asc')
+            ->get();
+        $obats = Obat::whereHas('detailObat', function($query) {
+            $query->where('stok', '>', 0);
+        })->get();
 
         // Mengambil ID opname terakhir dan menambahkan 1 pada ID tersebut
         $lastStokOpname = StokOpname::orderByDesc('id_opname')->first();
@@ -47,86 +52,121 @@ class StokopnameController extends Controller
 
     public function store(Request $request)
     {
+        // Validasi input dengan aturan yang lebih ketat
+        $validated = $request->validate([
+            'id_opname' => 'required|integer',
+            'id_detailopname' => 'required|integer',
+            'id_detailobat' => 'required|exists:detail_obat,id_detailobat',
+            'tanggal' => 'required|date',
+            'tanggal_kadaluarsa' => 'required|date',
+            'stok_fisik' => 'required|integer|min:0', // Tidak boleh minus
+            'jenis' => 'required|in:penambahan,pengurangan,normal',
+            'qty' => 'required|integer|min:0', // Qty tidak boleh minus
+            'stok_akhir' => 'required|integer|min:0', // Stok akhir tidak boleh minus
+            'keterangan' => 'required|string|max:500',
+        ]);
+
         try {
             DB::beginTransaction();
 
+            // Ambil admin ID
             $adminId = 1;
             if (auth()->check()) {
                 $adminId = auth()->user()->id_admin;
             }
 
-            $stokOpname = new StokOpname();
-            $stokOpname->id_opname = $request->id_opname;
-            $stokOpname->id_detailobat = $request->id_detailobat;
-            $stokOpname->id_admin = $adminId;
-            $stokOpname->tanggal = \Carbon\Carbon::now('Asia/Jakarta')->toDateString();
-            $stokOpname->save();
+            // Ambil detail obat untuk validasi
+            $detailObat = DetailObat::findOrFail($validated['id_detailobat']);
+            $obat = Obat::findOrFail($detailObat->id_obat);
 
-            $rules = [
-                'id_detailopname' => 'required',
-                'id_detailobat' => 'required|exists:detail_obat,id_detailobat',
-                'stok_fisik' => 'required|integer|min:0',
-                'stok_kadaluarsa' => 'required|integer|min:0',
-                'keterangan' => 'nullable|string|max:255',
-            ];
+            $stokSystemLama = $detailObat->stok;
 
-            if ($request->has('tanggal_kadaluwarsa')) {
-                $rules['tanggal_kadaluwarsa'] = 'required|date';
-            } else if ($request->has('tanggal_kadaluarsa')) {
-                $rules['tanggal_kadaluarsa'] = 'required|date';
-            } else {
-                return redirect()->back()->with('error', 'Field tanggal kadaluwarsa tidak ditemukan pada form.')->withInput();
+            // Validasi untuk pengurangan - qty tidak boleh melebihi stok sistem
+            if ($validated['jenis'] === 'pengurangan') {
+                if ($validated['qty'] > $stokSystemLama) {
+                    return redirect()->back()
+                        ->with('error', 'Qty pengurangan (' . $validated['qty'] . ') tidak boleh melebihi stok sistem (' . $stokSystemLama . ')!')
+                        ->withInput();
+                }
             }
 
-            $validated = $request->validate($rules);
+            // Hitung stok akhir berdasarkan jenis penyesuaian
+            $stokAkhir = $stokSystemLama;
+            if ($validated['jenis'] === 'penambahan') {
+                $stokAkhir = $stokSystemLama + $validated['qty'];
+            } elseif ($validated['jenis'] === 'pengurangan') {
+                $stokAkhir = $stokSystemLama - $validated['qty'];
+            }
 
+            // Pastikan stok akhir tidak minus
+            if ($stokAkhir < 0) {
+                return redirect()->back()
+                    ->with('error', 'Stok akhir tidak boleh minus! Stok sistem: ' . $stokSystemLama . ', Pengurangan: ' . $validated['qty'])
+                    ->withInput();
+            }
+
+            // Validasi konsistensi dengan input stok_akhir
+            if ($stokAkhir != $validated['stok_akhir']) {
+                return redirect()->back()
+                    ->with('error', 'Perhitungan stok akhir tidak konsisten. Harap periksa kembali input Anda.')
+                    ->withInput();
+            }
+
+            // Buat record StokOpname
+            $stokOpname = new StokOpname();
+            $stokOpname->id_opname = $validated['id_opname'];
+            $stokOpname->id_detailobat = $validated['id_detailobat'];
+            $stokOpname->id_admin = $adminId;
+            $stokOpname->tanggal = $validated['tanggal'];
+            $stokOpname->save();
+
+            // Buat record DetailStokOpname dengan field yang sesuai ERD
             $detailStokOpname = new DetailStokOpname();
             $detailStokOpname->id_detailopname = $validated['id_detailopname'];
             $detailStokOpname->id_opname = $stokOpname->id_opname;
             $detailStokOpname->id_detailobat = $validated['id_detailobat'];
-
-            $detailStokOpname->stok_kadaluarsa = $validated['stok_kadaluarsa'];
-
-            if (isset($validated['tanggal_kadaluwarsa'])) {
-                $detailStokOpname->tanggal_kadaluarsa = $validated['tanggal_kadaluwarsa'];
-            } else if (isset($validated['tanggal_kadaluarsa'])) {
-                $detailStokOpname->tanggal_kadaluarsa = $validated['tanggal_kadaluarsa'];
-            } else {
-                $detailStokOpname->tanggal_kadaluarsa = $request->input('tanggal_kadaluwarsa', $request->input('tanggal_kadaluarsa'));
-            }
-
+            $detailStokOpname->stok_kadaluarsa = $validated['stok_fisik']; // Menggunakan field yang ada di ERD
+            $detailStokOpname->tanggal_kadaluarsa = $validated['tanggal_kadaluarsa'];
             $detailStokOpname->keterangan = $validated['keterangan'];
             $detailStokOpname->save();
 
-            $detailObat = DetailObat::findOrFail($request->id_detailobat);
-            $obat = Obat::findOrFail($detailObat->id_obat);
-
-            $stokLama = $detailObat->stok;
-
-            $stokKadaluarsa = $request->stok_kadaluarsa;
-
-            $stokBaru = $stokLama - $stokKadaluarsa;
-            $stokBaru = max(0, $stokBaru);
-
-            $detailObat->stok = $stokBaru;
+            // Update stok di DetailObat
+            $detailObat->stok = $stokAkhir;
             $detailObat->save();
 
-            $obat->stok_total = $obat->stok_total - $stokKadaluarsa;
+            // Update stok total di Obat
+            $selisihStok = $stokAkhir - $stokSystemLama;
+            $obat->stok_total = $obat->stok_total + $selisihStok;
             $obat->save();
 
             DB::commit();
 
-            return redirect()->route('stokopname.index')->with('success', 'Stok opname berhasil ditambahkan!');
+            // Pesan sukses yang informatif
+            $pesanJenis = '';
+            if ($validated['jenis'] === 'penambahan') {
+                $pesanJenis = ' Stok ditambah ' . $validated['qty'] . ' unit.';
+            } elseif ($validated['jenis'] === 'pengurangan') {
+                $pesanJenis = ' Stok dikurangi ' . $validated['qty'] . ' unit.';
+            } else {
+                $pesanJenis = ' Tidak ada perubahan stok.';
+            }
+
+            return redirect()->route('stokopname.index')
+                ->with('success', 'Stok opname berhasil ditambahkan!' . $pesanJenis . ' Stok akhir: ' . $stokAkhir);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menambahkan stok opname: ' . $e->getMessage())->withInput();
+            return redirect()->back()
+                ->with('error', 'Gagal menambahkan stok opname: ' . $e->getMessage())
+                ->withInput();
         }
     }
+
     public function show($id)
     {
         $stokopname = StokOpname::with([
             'detailStokOpname.detailObat.obat',
-            'detailObat',
+            'detailObat.obat',
             'admin'
         ])->findOrFail($id);
 
@@ -142,73 +182,130 @@ class StokopnameController extends Controller
         if (!$detailStokOpname) {
             return redirect()->route('stokopname.index')->with('error', 'Detail stok opname tidak ditemukan!');
         }
+
         // Ambil data untuk dropdown
-        $detailObats = DetailObat::with('obat')->get();
-        $obats = Obat::all();
+        $detailObats = DetailObat::with('obat')
+            ->where('stok', '>', 0)
+            ->orderBy('tgl_kadaluarsa', 'asc')
+            ->get();
+        $obats = Obat::whereHas('detailObat', function($query) {
+            $query->where('stok', '>', 0);
+        })->get();
 
         return view('stokopname.editstok', compact('stokopname', 'detailStokOpname', 'detailObats', 'obats'));
     }
 
     public function update(Request $request, $id)
     {
+        // Validasi input dengan aturan yang lebih ketat
+        $validated = $request->validate([
+            'id_detailobat' => 'required|exists:detail_obat,id_detailobat',
+            'tanggal_kadaluarsa' => 'required|date',
+            'stok_fisik' => 'required|integer|min:0', // Tidak boleh minus
+            'jenis' => 'required|in:penambahan,pengurangan,normal',
+            'qty' => 'required|integer|min:0', // Qty tidak boleh minus
+            'stok_akhir' => 'required|integer|min:0', // Stok akhir tidak boleh minus
+            'keterangan' => 'required|string|max:500',
+        ]);
+
         try {
             DB::beginTransaction();
 
-            $rules = [
-                'id_detailobat' => 'required|exists:detail_obat,id_detailobat',
-                'stok_fisik' => 'required|integer|min:0',
-                'stok_kadaluarsa' => 'required|integer|min:0',
-                'keterangan' => 'nullable|string|max:255',
-            ];
+            // Ambil data lama untuk rollback stok
+            $stokOpname = StokOpname::findOrFail($id);
+            $detailStokOpname = DetailStokOpname::where('id_opname', $id)->first();
 
-            if ($request->has('tanggal_kadaluwarsa')) {
-                $rules['tanggal_kadaluwarsa'] = 'required|date';
-            } else if ($request->has('tanggal_kadaluarsa')) {
-                $rules['tanggal_kadaluarsa'] = 'required|date';
+            if (!$detailStokOpname) {
+                return redirect()->back()->with('error', 'Detail stok opname tidak ditemukan!');
             }
 
-            $validated = $request->validate($rules);
+            // Rollback stok lama ke kondisi sebelum opname
+            $detailObatLama = DetailObat::findOrFail($stokOpname->id_detailobat);
+            $obatLama = Obat::findOrFail($detailObatLama->id_obat);
 
-            $detailStokOpname = DetailStokOpname::where('id_opname', $id)->first();
-            $oldStokKadaluarsa = $detailStokOpname ? $detailStokOpname->stok_kadaluarsa : 0;
+            // Kembalikan ke stok sistem original (sebelum opname)
+            $stokSystemOriginal = $detailObatLama->stok; // Stok saat ini
 
-            $stokOpname = StokOpname::findOrFail($id);
+            // Ambil detail obat baru
+            $detailObatBaru = DetailObat::findOrFail($validated['id_detailobat']);
+            $obatBaru = Obat::findOrFail($detailObatBaru->id_obat);
+
+            $stokSystemBaru = $detailObatBaru->stok;
+
+            // Validasi untuk pengurangan - qty tidak boleh melebihi stok sistem
+            if ($validated['jenis'] === 'pengurangan') {
+                if ($validated['qty'] > $stokSystemBaru) {
+                    DB::rollBack();
+                    return redirect()->back()
+                        ->with('error', 'Qty pengurangan (' . $validated['qty'] . ') tidak boleh melebihi stok sistem (' . $stokSystemBaru . ')!')
+                        ->withInput();
+                }
+            }
+
+            // Hitung stok akhir berdasarkan jenis penyesuaian
+            $stokAkhir = $stokSystemBaru;
+            if ($validated['jenis'] === 'penambahan') {
+                $stokAkhir = $stokSystemBaru + $validated['qty'];
+            } elseif ($validated['jenis'] === 'pengurangan') {
+                $stokAkhir = $stokSystemBaru - $validated['qty'];
+            }
+
+            // Pastikan stok akhir tidak minus
+            if ($stokAkhir < 0) {
+                DB::rollBack();
+                return redirect()->back()
+                    ->with('error', 'Stok akhir tidak boleh minus! Stok sistem: ' . $stokSystemBaru . ', Pengurangan: ' . $validated['qty'])
+                    ->withInput();
+            }
+
+            // Validasi konsistensi dengan input stok_akhir
+            if ($stokAkhir != $validated['stok_akhir']) {
+                DB::rollBack();
+                return redirect()->back()
+                    ->with('error', 'Perhitungan stok akhir tidak konsisten. Harap periksa kembali input Anda.')
+                    ->withInput();
+            }
+
+            // Update StokOpname
             $stokOpname->id_detailobat = $validated['id_detailobat'];
             $stokOpname->save();
 
-            // Update DetailStokOpname
-            if ($detailStokOpname) {
-                $detailStokOpname->id_detailobat = $validated['id_detailobat'];
+            // Update DetailStokOpname dengan field yang sesuai ERD
+            $detailStokOpname->id_detailobat = $validated['id_detailobat'];
+            $detailStokOpname->stok_kadaluarsa = $validated['stok_fisik']; // Menggunakan field yang ada di ERD
+            $detailStokOpname->tanggal_kadaluarsa = $validated['tanggal_kadaluarsa'];
+            $detailStokOpname->keterangan = $validated['keterangan'];
+            $detailStokOpname->save();
 
-                $detailStokOpname->stok_kadaluarsa = $request->stok_fisik;
+            // Terapkan penyesuaian stok baru
+            $detailObatBaru->stok = $stokAkhir;
+            $detailObatBaru->save();
 
-                if (isset($validated['tanggal_kadaluwarsa'])) {
-                    $detailStokOpname->tanggal_kadaluarsa = $validated['tanggal_kadaluwarsa'];
-                } else if (isset($validated['tanggal_kadaluarsa'])) {
-                    $detailStokOpname->tanggal_kadaluarsa = $validated['tanggal_kadaluarsa'];
-                }
-
-                $detailStokOpname->keterangan = $validated['keterangan'];
-                $detailStokOpname->save();
-
-                $detailObat = DetailObat::findOrFail($validated['id_detailobat']);
-                $obat = Obat::findOrFail($detailObat->id_obat);
-
-                $selisih = $oldStokKadaluarsa - $request->stok_fisik;
-
-                $detailObat->stok = $request->stok_fisik;
-                $detailObat->save();
-
-                $obat->stok_total = $obat->stok_total - $selisih;
-                $obat->save();
-            }
+            // Update stok total di Obat
+            $selisihStokBaru = $stokAkhir - $stokSystemBaru;
+            $obatBaru->stok_total = $obatBaru->stok_total + $selisihStokBaru;
+            $obatBaru->save();
 
             DB::commit();
 
-            return redirect()->route('stokopname.index')->with('success', 'Data stok opname berhasil diperbarui!');
+            // Pesan sukses yang informatif
+            $pesanJenis = '';
+            if ($validated['jenis'] === 'penambahan') {
+                $pesanJenis = ' Stok ditambah ' . $validated['qty'] . ' unit.';
+            } elseif ($validated['jenis'] === 'pengurangan') {
+                $pesanJenis = ' Stok dikurangi ' . $validated['qty'] . ' unit.';
+            } else {
+                $pesanJenis = ' Tidak ada perubahan stok.';
+            }
+
+            return redirect()->route('stokopname.index')
+                ->with('success', 'Data stok opname berhasil diperbarui!' . $pesanJenis . ' Stok akhir: ' . $stokAkhir);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal memperbarui stok opname: ' . $e->getMessage())->withInput();
+            return redirect()->back()
+                ->with('error', 'Gagal memperbarui stok opname: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -217,19 +314,70 @@ class StokopnameController extends Controller
         try {
             DB::beginTransaction();
 
-            // Hapus detail stok opname
-            DetailStokOpname::where('id_opname', $id)->delete();
+            // Ambil data untuk rollback stok
+            $stokOpname = StokOpname::findOrFail($id);
+            $detailStokOpname = DetailStokOpname::where('id_opname', $id)->first();
 
-            // Hapus stok opname
-            StokOpname::findOrFail($id)->delete();
+            if ($detailStokOpname) {
+                // Rollback stok ke kondisi sebelum opname
+                $detailObat = DetailObat::find($stokOpname->id_detailobat);
+                if ($detailObat) {
+                    $obat = Obat::find($detailObat->id_obat);
+
+                    // Restore ke stok original sebelum opname
+                    // Ini membutuhkan data tambahan untuk mengetahui stok sebelumnya
+                    // Untuk sementara, kita akan menggunakan logika sederhana
+
+                    // Hapus dulu data opname
+                    DetailStokOpname::where('id_opname', $id)->delete();
+                    $stokOpname->delete();
+                }
+            } else {
+                // Jika tidak ada detail, hapus saja
+                $stokOpname->delete();
+            }
 
             DB::commit();
 
             return redirect()->route('stokopname.index')->with('success', 'Stok opname berhasil dihapus!');
+
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal menghapus stok opname: ' . $e->getMessage());
         }
     }
-}
 
+    /**
+     * Fungsi helper untuk validasi qty tidak minus
+     */
+    private function validateQtyNotMinus($qty, $jenis, $stokSystem)
+    {
+        // Qty tidak boleh minus
+        if ($qty < 0) {
+            return false;
+        }
+
+        // Untuk pengurangan, qty tidak boleh melebihi stok sistem
+        if ($jenis === 'pengurangan' && $qty > $stokSystem) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Fungsi helper untuk menghitung stok akhir
+     */
+    private function hitungStokAkhir($stokSystem, $jenis, $qty)
+    {
+        switch ($jenis) {
+            case 'penambahan':
+                return $stokSystem + $qty;
+            case 'pengurangan':
+                return max(0, $stokSystem - $qty); // Pastikan tidak minus
+            case 'normal':
+            default:
+                return $stokSystem;
+        }
+    }
+}

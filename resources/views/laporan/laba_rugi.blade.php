@@ -18,7 +18,7 @@
             </a>
             <div>
                 <button class="btn btn-sm btn-success" onclick="printLaporanLabaRugi()">
-                    <i class="bi bi-printer"></i> Cetak
+                    <i class="bi bi-printer"></i> Cetak PDF
                 </button>
                 <button class="btn btn-sm btn-primary" id="exportExcel">
                     <i class="bi bi-file-earmark-excel"></i> Export Excel
@@ -110,7 +110,6 @@
                             <tr>
                                 <th>No</th>
                                 <th>Periode</th>
-
                                 <th>Total Modal</th>
                                 <th>Total Penjualan</th>
                                 <th>Keuntungan</th>
@@ -141,7 +140,6 @@
                                 <tr>
                                     <td>{{ $no++ }}</td>
                                     <td>{{ $periodeDisplay }}</td>
-
                                     <td>Rp {{ number_format($item->total_modal, 0, ',', '.') }}</td>
                                     <td>Rp {{ number_format($item->total_penjualan, 0, ',', '.') }}</td>
                                     <td>Rp {{ number_format($item->keuntungan, 0, ',', '.') }}</td>
@@ -156,7 +154,6 @@
                         <tfoot>
                             <tr class="bg-light">
                                 <td colspan="2"><strong>Total</strong></td>
-
                                 <td><strong>Rp {{ number_format($summary['total_modal'], 0, ',', '.') }}</strong></td>
                                  <td><strong>Rp {{ number_format($summary['total_pendapatan'], 0, ',', '.') }}</strong></td>
                                 <td><strong>Rp {{ number_format($summary['total_keuntungan'], 0, ',', '.') }}</strong></td>
@@ -459,12 +456,6 @@
                 order: [[1, 'desc']]
             });
 
-            // Export to Excel functionality
-            document.getElementById('exportExcel').addEventListener('click', function () {
-                const table2excel = new Table2Excel();
-                table2excel.export(document.getElementById('labaRugiTable'), 'Laporan_Laba_Rugi_' + new Date().toISOString().slice(0, 10));
-            });
-
             // Prepare chart data
             const profitData = {
                 labels: [
@@ -575,5 +566,85 @@
         function printLaporanLabaRugi() {
             window.print();
         }
+    </script>
+
+    <!-- Export Excel Script - Menggunakan metode yang sama seperti stok_fifo.blade.php -->
+    <script>
+        // Solusi HTML Table to Excel - Export untuk Laporan Laba Rugi
+        function exportLabaRugiToExcel() {
+            // Ambil kedua tabel
+            const labaRugiTable = document.getElementById('labaRugiTable');
+            const detailPenjualanTable = document.getElementById('detailPenjualanTable');
+
+            // Buat HTML untuk Excel
+            let html = `
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; font-weight: bold; }
+                        .center { text-align: center; }
+                        .right { text-align: right; }
+                        h2, h3 { text-align: center; margin: 10px 0; }
+                        .summary { margin: 20px 0; text-align: center; }
+                        .summary-item { display: inline-block; margin: 0 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h2>APOTEK SEHAT SENTOSA</h2>
+                        <p>Jl. Prof Yohanes No. 123, Yogyakarta</p>
+                        <p>Telp: 0831 3869 4411 | Email: apoteksehatsentosa@gmail.com</p>
+                        <hr>
+                        <h3>LAPORAN LABA RUGI</h3>
+                        <p>Periode: {{ $carbon_start->format('d M Y') }} - {{ $carbon_end->format('d M Y') }}</p>
+                    </div>
+
+                    <div class="summary">
+                        <h4>RINGKASAN</h4>
+                        <div class="summary-item">
+                            <strong>Total Modal: Rp {{ number_format($summary['total_modal'], 0, ',', '.') }}</strong>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Total Penjualan: Rp {{ number_format($summary['total_pendapatan'], 0, ',', '.') }}</strong>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Total Keuntungan: Rp {{ number_format($summary['total_keuntungan'], 0, ',', '.') }}</strong>
+                        </div>
+                    </div>
+
+                    <h3>LAPORAN LABA RUGI PER PERIODE</h3>
+            `;
+
+            // Clone tabel laba rugi untuk manipulasi
+            const clonedLabaRugiTable = labaRugiTable.cloneNode(true);
+            html += clonedLabaRugiTable.outerHTML;
+
+            html += '<h3 style="margin-top: 40px;">DETAIL PENJUALAN</h3>';
+
+            // Clone tabel detail penjualan untuk manipulasi
+            const clonedDetailTable = detailPenjualanTable.cloneNode(true);
+            html += clonedDetailTable.outerHTML;
+
+            html += '</body></html>';
+
+            // Buat dan download file
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Laporan_Laba_Rugi_${new Date().toISOString().slice(0, 10)}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Event listener untuk export Excel
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('exportExcel').addEventListener('click', exportLabaRugiToExcel);
+        });
     </script>
 @endsection

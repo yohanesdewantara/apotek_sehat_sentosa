@@ -243,16 +243,52 @@ class ObatController extends Controller
             return back()->withErrors(['msg' => 'Gagal update data: ' . $e->getMessage()]);
         }
     }
-    public function destroy($id)
-    {
-        try {
-            $obat = Obat::findOrFail($id);
-            $obat->delete();
-            return redirect()->route('obat.index')->with('success', 'Data obat berhasil dihapus.');
-        } catch (\Exception $e) {
-            return back()->withErrors(['msg' => 'Gagal menghapus data: ' . $e->getMessage()]);
+ public function destroy($id)
+{
+    try {
+        DB::beginTransaction();
+
+        $obat = Obat::findOrFail($id);
+
+        // Ambil semua id_detailobat yang terkait dengan obat ini
+        $detailObatIds = $obat->detailObat()->pluck('id_detailobat');
+
+        if ($detailObatIds->isNotEmpty()) {
+            // 1. Hapus dari detail_stokopname terlebih dahulu
+            DB::table('detail_stokopname')
+                ->whereIn('id_detailobat', $detailObatIds)
+                ->delete();
+
+            // 2. Hapus dari stok_opname (yang memiliki FK ke detail_obat)
+            DB::table('stok_opname')
+                ->whereIn('id_detailobat', $detailObatIds)
+                ->delete();
+
+            // 3. Hapus dari detail_penjualan
+            DB::table('detail_penjualan')
+                ->whereIn('id_detailobat', $detailObatIds)
+                ->delete();
+
+            // 4. Hapus dari detail_pembelian
+            DB::table('detail_pembelian')
+                ->whereIn('id_detailobat', $detailObatIds)
+                ->delete();
         }
+
+        // 5. Hapus detail_obat
+        $obat->detailObat()->delete();
+
+        // 6. Terakhir hapus obat
+        $obat->delete();
+
+        DB::commit();
+        return redirect()->route('obat.index')->with('success', 'Data obat dan semua riwayat terkait berhasil dihapus.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->withErrors(['msg' => 'Gagal menghapus data: ' . $e->getMessage()]);
     }
+}
 
     public function showDiskon($id)
     {

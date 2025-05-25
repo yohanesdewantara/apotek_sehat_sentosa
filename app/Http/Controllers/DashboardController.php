@@ -30,7 +30,7 @@ class DashboardController extends Controller
             ->whereBetween('tgl_kadaluarsa', [$today, $thirtyDaysLater])
             ->orderBy('tgl_kadaluarsa')
             ->with('obat')
-            ->take(10)
+            ->take(30)
             ->get();
 
         $kadaluarsaCount = DetailObat::where('stok', '>', 0)
@@ -38,9 +38,9 @@ class DashboardController extends Controller
             ->where('tgl_kadaluarsa', '>=', $today)
             ->count();
 
-        $lowStockItems = Obat::where('stok_total', '<', 10)
+        $lowStockItems = Obat::where('stok_total', '<', 30)
             ->orderBy('stok_total')
-            ->take(10)
+            ->take(30)
             ->get();
 
         $salesChartData = $this->getSalesChartData();

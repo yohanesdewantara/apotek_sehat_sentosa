@@ -3,6 +3,7 @@
 @section('title', 'Laporan Stok FIFO')
 
 @section('artikel')
+
     <div class="container-fluid">
         <!-- Header Apotek -->
         <div class="text-center mb-3 print-only">
@@ -18,7 +19,7 @@
             </a>
             <div>
                 <button class="btn btn-sm btn-success" onclick="printTable()">
-                    <i class="bi bi-printer"></i> Cetak
+                    <i class="bi bi-printer"></i> Cetak PDF
                 </button>
                 <button class="btn btn-sm btn-primary" id="exportExcel">
                     <i class="bi bi-file-earmark-excel"></i> Export Excel
@@ -476,4 +477,68 @@
             window.print();
         }
     </script>
+    <!-- Tambahkan script ini di bagian bawah stok_fifo.blade.php -->
+<script>
+// Solusi HTML Table to Excel - Sangat Sederhana
+function exportToExcel() {
+    // Ambil tabel
+    const table = document.getElementById('stokFifoTable');
+
+    // Buat HTML untuk Excel
+    let html = `
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                table { border-collapse: collapse; width: 100%; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                .center { text-align: center; }
+            </style>
+        </head>
+        <body>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2>APOTEK SEHAT SENTOSA</h2>
+                <p>Jl. Prof Yohanes No. 123, Yogyakarta</p>
+                <p>Telp: 0831 3869 4411 | Email: apoteksehatsentosa@gmail.com</p>
+                <hr>
+                <h3>LAPORAN STOK OBAT FIFO</h3>
+                <p>Tanggal: ${new Date().toLocaleDateString('id-ID')}</p>
+            </div>
+    `;
+
+    // Clone tabel untuk manipulasi
+    const clonedTable = table.cloneNode(true);
+
+    // Bersihkan badge dan HTML elements dari kolom status
+    const statusCells = clonedTable.querySelectorAll('tbody td:nth-child(9)');
+    statusCells.forEach(cell => {
+        const badges = cell.querySelectorAll('.badge');
+        let statusText = '';
+        badges.forEach(badge => {
+            statusText += badge.textContent.trim() + ' ';
+        });
+        cell.innerHTML = statusText.trim();
+    });
+
+    html += clonedTable.outerHTML;
+    html += '</body></html>';
+
+    // Buat dan download file
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Laporan_Stok_FIFO_${new Date().toISOString().slice(0, 10)}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+// Event listener
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('exportExcel').addEventListener('click', exportToExcel);
+});
+</script>
 @endsection
